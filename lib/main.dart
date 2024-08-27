@@ -2,22 +2,32 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'webview_page.dart'; // Import the new WebView page file
 import 'dart:async';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:path_provider/path_provider.dart';
+import 'download_state.dart'; // Import the state model
+import 'locator.dart';
+import 'package:open_file/open_file.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterDownloader.initialize(debug: true, ignoreSsl: true);
 
-  // Start the local server
+  setupLocator(); // Initialize the service locator
+
   var server = await io.serve(_handlePostRequest, '0.0.0.0', 8080);
   print('Server running on localhost:${server.port}');
 
-  runApp(WebViewDemo());
+  runApp(
+    ChangeNotifierProvider.value(
+      value: locator<DownloadState>(),
+      child: WebViewDemo(),
+    ),
+  );
 }
 
 // Function to get the app-specific download directory
@@ -30,7 +40,6 @@ Future<String> _getDownloadPath() async {
 Future<Response> _handlePostRequest(Request request) async {
   print("Received request ${request.method}");
   if (request.method == 'OPTIONS') {
-    // Handle preflight requests
     return Response.ok('Preflight OK', headers: _corsHeaders());
   }
 
@@ -39,24 +48,26 @@ Future<Response> _handlePostRequest(Request request) async {
     var filename = request.headers['filename'];
     if (contentType != null && contentType.contains('application/json')) {
       try {
-        // Parse and save the PDF file
         var bytes = await request.read().toList();
         var pdfData = bytes.expand((element) => element).toList();
 
-        // Get the app-specific download directory
         String downloadPath = await _getDownloadPath();
         var filePath = '$downloadPath/${filename!}';
         var file = File(filePath);
 
-        // Save the file
         await file.writeAsBytes(pdfData);
-
-        // show a message in toast
         print('File saved successfully to ${filePath}');
+
+        // Notify Flutter app via global state using get_it
+        final downloadState = locator<DownloadState>();
+        downloadState.setFilePath(filePath);
+
+        return Response.ok('File saved successfully!', headers: _corsHeaders());
       } catch (e) {
         print('Error: $e');
+        return Response(500,
+            body: 'Error saving file', headers: _corsHeaders());
       }
-      return Response.ok('File saved successfully!', headers: _corsHeaders());
     } else {
       return Response(400,
           body: 'Invalid content type', headers: _corsHeaders());
@@ -64,8 +75,8 @@ Future<Response> _handlePostRequest(Request request) async {
   }
   return Response(405, body: 'Method Not Allowed', headers: _corsHeaders());
 }
-// a function to send post request and check if the local server is working
 
+// a function to send post request and check if the local server is working
 void checkServer() async {
   try {
     var client = HttpClient();
@@ -101,9 +112,11 @@ Map<String, String> _corsHeaders() {
 }
 
 class WebViewDemo extends StatelessWidget {
+  const WebViewDemo({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'WebView Demo',
       home: WebViewHomePage(),
     );
@@ -111,6 +124,8 @@ class WebViewDemo extends StatelessWidget {
 }
 
 class WebViewHomePage extends StatefulWidget {
+  const WebViewHomePage({super.key});
+
   @override
   _WebViewHomePageState createState() => _WebViewHomePageState();
 }
@@ -132,45 +147,70 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('WebView Demo'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _urlController,
-              decoration: const InputDecoration(
-                labelText: 'Enter URL',
+    return Consumer<DownloadState>(
+      builder: (context, downloadState, child) {
+        if (downloadState.filePath != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('File downloaded successfully!'),
+                action: SnackBarAction(
+                  label: 'Open Folder',
+                  onPressed: () async {
+                    final directory = await getDownloadsDirectory();
+                    final path = directory?.path;
+                    if (path != null) {
+                      OpenFile.open(path);
+                    }
+                  },
+                ),
               ),
+            );
+            // Clear path after showing snack bar
+            Provider.of<DownloadState>(context, listen: false)
+                .setFilePath(null);
+          });
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text('WebView Demo'),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _urlController,
+                  decoration: const InputDecoration(
+                    labelText: 'Enter URL',
+                  ),
+                ),
+                SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    String url = _urlController.text;
+                    if (!url.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => WebViewPage(
+                              url:
+                                  "https://drive.google.com/file/d/1L9q0Km_x1r7Eg-O5_pQqmU0inklq7b6f/view"),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please enter a URL')));
+                    }
+                  },
+                  child: Text('Go'),
+                ),
+              ],
             ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () {
-                String url = _urlController.text;
-                // should be edited
-                if (!url.isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => WebViewPage(
-                          url:
-                              // "https://drive.google.com/file/d/1gfQpqfMScIsAeN0kpHG9QRPgMrxwppsQ/view?usp=sharing"),
-                              'https://drive.google.com/file/d/1q3Z6SJxVZV6UJsRoWf37sMjlWg3LMdyi/view'),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please enter a URL')));
-                }
-              },
-              child: Text('Go'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
