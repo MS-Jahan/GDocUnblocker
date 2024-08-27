@@ -25,7 +25,7 @@ void main() async {
   runApp(
     ChangeNotifierProvider.value(
       value: locator<DownloadState>(),
-      child: WebViewDemo(),
+      child: GDocUnblocker(),
     ),
   );
 }
@@ -111,13 +111,13 @@ Map<String, String> _corsHeaders() {
   };
 }
 
-class WebViewDemo extends StatelessWidget {
-  const WebViewDemo({super.key});
+class GDocUnblocker extends StatelessWidget {
+  const GDocUnblocker({super.key});
 
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'WebView Demo',
+      title: 'GDocUnblocker',
       home: WebViewHomePage(),
     );
   }
@@ -132,6 +132,7 @@ class WebViewHomePage extends StatefulWidget {
 
 class _WebViewHomePageState extends State<WebViewHomePage> {
   final _urlController = TextEditingController();
+  String _selectedOption = '1'; // Default to "Faster (Recommended)"
 
   @override
   void initState() {
@@ -155,13 +156,15 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
               SnackBar(
                 content: Text('File downloaded successfully!'),
                 action: SnackBarAction(
-                  label: 'Open Folder',
-                  onPressed: () async {
-                    final directory = await getDownloadsDirectory();
-                    final path = directory?.path;
-                    if (path != null) {
-                      OpenFile.open(path);
-                    }
+                  label: 'View Downloads',
+                  onPressed: () {
+                    // Navigate to the DownloadsPage
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DownloadsPage(),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -174,7 +177,39 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('WebView Demo'),
+            title: Text('GDocUnblocker'),
+          ),
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                  ),
+                  child: Text('Menu',
+                      style: TextStyle(color: Colors.white, fontSize: 24)),
+                ),
+                ListTile(
+                  title: Text('Home'),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: Text('Downloads'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DownloadsPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
           body: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -183,20 +218,55 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                 TextField(
                   controller: _urlController,
                   decoration: const InputDecoration(
-                    labelText: 'Enter URL',
+                    labelText: 'Enter a Google Drive PDF preview URL',
                   ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Select unblock method:",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: '1',
+                      groupValue: _selectedOption,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedOption = value!;
+                        });
+                      },
+                    ),
+                    Text('Faster (Recommended)'),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Radio<String>(
+                      value: '2',
+                      groupValue: _selectedOption,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedOption = value!;
+                        });
+                      },
+                    ),
+                    Text('Slower, if 1st one fails'),
+                  ],
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () {
                     String url = _urlController.text;
-                    if (!url.isNotEmpty) {
+                    if (url.isNotEmpty) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => WebViewPage(
-                              url:
-                                  "https://drive.google.com/file/d/1L9q0Km_x1r7Eg-O5_pQqmU0inklq7b6f/view"),
+                            url: url,
+                            selectedScript:
+                                _selectedOption, // Pass the selected option
+                          ),
                         ),
                       );
                     } else {
@@ -211,6 +281,64 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
           ),
         );
       },
+    );
+  }
+}
+
+class DownloadsPage extends StatelessWidget {
+  const DownloadsPage({super.key});
+
+  Future<List<FileSystemEntity>> _listFilesInDirectory() async {
+    final directory = await getDownloadsDirectory();
+    return directory!.listSync();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Downloads'),
+      ),
+      body: FutureBuilder<List<FileSystemEntity>>(
+        future: _listFilesInDirectory(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error loading files'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No files found'));
+          } else {
+            final files = snapshot.data!;
+            return ListView.builder(
+              itemCount: files.length + 1,
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Download folder: ${files.first.parent.path}',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  );
+                } else {
+                  final file = files[index - 1];
+                  return ListTile(
+                    title: Text(file.path.split('/').last),
+                    trailing: IconButton(
+                      icon: Icon(Icons.open_in_new),
+                      onPressed: () {
+                        OpenFile.open(file.path);
+                      },
+                    ),
+                  );
+                }
+              },
+            );
+          }
+        },
+      ),
     );
   }
 }

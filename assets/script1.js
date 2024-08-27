@@ -191,9 +191,9 @@ try {
                     body: pdfBlob
                 }).then(response => {
                     if (response.ok) {
-                        alert('PDF uploaded successfully!');
+                        alert('PDF downloaded successfully!');
                     } else {
-                        alert('Failed to upload PDF.');
+                        alert('Failed to download PDF.');
                     }
                 });
 

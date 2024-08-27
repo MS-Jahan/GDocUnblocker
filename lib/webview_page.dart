@@ -7,8 +7,9 @@ import 'dart:io';
 
 class WebViewPage extends StatefulWidget {
   final String url;
+  final String selectedScript;
 
-  WebViewPage({this.url = 'https://www.example.com'}); // Default URL
+  WebViewPage({this.url = 'https://www.example.com', required this.selectedScript}); // Update constructor
 
   @override
   _WebViewPageState createState() => _WebViewPageState();
@@ -18,48 +19,18 @@ class _WebViewPageState extends State<WebViewPage> {
   late WebViewController _controller;
 
   @override
-  void initState() {
-    super.initState();
-    _requestPermissions();
-  }
-
-  Future<void> _requestPermissions() async {
-    if (Platform.isAndroid) {
-      await Permission.storage.request();
-    }
-  }
-
-  Future<bool> _checkPermission() async {
-    if (Platform.isIOS) return true;
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-    if (androidInfo.version.sdkInt! <= 28) {
-      final status = await Permission.storage.status;
-      if (status != PermissionStatus.granted) {
-        final result = await Permission.storage.request();
-        return result == PermissionStatus.granted;
-      }
-      return true;
-    }
-    return true;
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('WebView'),
+        title: Text('GDocUnblocker WebView'),
       ),
       body: WebView(
         javascriptMode: JavascriptMode.unrestricted,
         initialUrl: widget.url,
         onWebViewCreated: (controller) {
           _controller = controller;
-          // _loadLocalJs();
         },
         onPageFinished: (controller) {
-          // Optionally, you can run JavaScript here if needed
-          // _controller = controller;
           _loadLocalJs();
         },
       ),
@@ -67,8 +38,10 @@ class _WebViewPageState extends State<WebViewPage> {
   }
 
   Future<void> _loadLocalJs() async {
-    String jsContent =
-        await DefaultAssetBundle.of(context).loadString('assets/script.js');
+    String scriptFile = widget.selectedScript == '1'
+        ? 'assets/script1.js'
+        : 'assets/script2.js';
+    String jsContent = await DefaultAssetBundle.of(context).loadString(scriptFile);
     _controller.runJavascript(jsContent);
   }
 }
