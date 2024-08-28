@@ -13,6 +13,7 @@ import 'download_state.dart'; // Import the state model
 import 'locator.dart';
 import 'package:open_file/open_file.dart';
 import 'update_notifier.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -214,25 +215,58 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                   decoration: BoxDecoration(
                     color: Colors.blue,
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.menu,
-                          color: Colors.white, size: 24), // Add an icon here
-                      SizedBox(width: 8),
-                      Text('Menu',
-                          style: TextStyle(color: Colors.white, fontSize: 24)),
+                      Row(
+                        children: [
+                          Icon(Icons.lock_open, color: Colors.white, size: 24),
+                          SizedBox(width: 8),
+                          Text('GDocUnblocker',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 24)),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      FutureBuilder<PackageInfo>(
+                        future: PackageInfo.fromPlatform(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return Text(
+                              'Loading version...',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Text(
+                              'Error loading version',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            );
+                          } else {
+                            final version = snapshot.data!.version;
+                            final buildNumber = snapshot.data!.buildNumber;
+                            return Text(
+                              'v$version+$buildNumber',
+                              style:
+                                  TextStyle(color: Colors.white, fontSize: 16),
+                            );
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.home), // Add an icon here
+                  leading: Icon(Icons.home),
                   title: Text('Home'),
                   onTap: () {
                     Navigator.pop(context);
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.download), // Add an icon here
+                  leading: Icon(Icons.download),
                   title: Text('Downloads'),
                   onTap: () {
                     Navigator.pop(context);
@@ -389,61 +423,3 @@ class DownloadsPage extends StatelessWidget {
     );
   }
 }
-
-// class DownloadsPage extends StatelessWidget {
-//   const DownloadsPage({super.key});
-
-//   Future<List<FileSystemEntity>> _listFilesInDirectory() async {
-//     final directory = await getDownloadsDirectory();
-//     return directory!.listSync();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('Downloads'),
-//       ),
-//       body: FutureBuilder<List<FileSystemEntity>>(
-//         future: _listFilesInDirectory(),
-//         builder: (context, snapshot) {
-//           if (snapshot.connectionState == ConnectionState.waiting) {
-//             return Center(child: CircularProgressIndicator());
-//           } else if (snapshot.hasError) {
-//             return Center(child: Text('Error loading files'));
-//           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-//             return Center(child: Text('No files found'));
-//           } else {
-//             final files = snapshot.data!;
-//             return ListView.builder(
-//               itemCount: files.length + 1,
-//               itemBuilder: (context, index) {
-//                 if (index == 0) {
-//                   return Padding(
-//                     padding: const EdgeInsets.all(8.0),
-//                     child: Text(
-//                       'Download folder: ${files.first.parent.path}',
-//                       style:
-//                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-//                     ),
-//                   );
-//                 } else {
-//                   final file = files[index - 1];
-//                   return ListTile(
-//                     title: Text(file.path.split('/').last),
-//                     trailing: IconButton(
-//                       icon: Icon(Icons.open_in_new),
-//                       onPressed: () {
-//                         OpenFile.open(file.path);
-//                       },
-//                     ),
-//                   );
-//                 }
-//               },
-//             );
-//           }
-//         },
-//       ),
-//     );
-//   }
-// }

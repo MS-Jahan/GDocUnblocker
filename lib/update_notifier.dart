@@ -13,7 +13,7 @@ class UpdateNotifier {
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final String currentVersion = packageInfo.version;
 
-    print("Current version: ${currentVersion}")
+    print("Current version: ${currentVersion}");
 
     // GitHub API URL to get the latest release
     final String url =
@@ -24,8 +24,11 @@ class UpdateNotifier {
 
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
-        final String latestVersion = jsonResponse['tag_name'];
-        print("Latest version: ${latestVersion}")
+        String latestVersion = jsonResponse['tag_name'];
+        print("Latest version: ${latestVersion}");
+        // split the latestversion by `+`
+        latestVersion = latestVersion.split('+')[0];
+        print("Latest version number: ${latestVersion}");
 
         if (latestVersion != currentVersion) {
           _showUpdateDialog(latestVersion);
