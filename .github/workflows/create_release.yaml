@@ -52,10 +52,15 @@ jobs:
 
     - name: Zipalign APKs
       run: |
-        for apk in build/app/outputs/flutter-apk/*-unsigned.apk; do
-          $ANDROID_HOME/build-tools/*/zipalign -v 4 \
-            "$apk" \
-            "${apk%*-unsigned.apk}-aligned.apk"
+        # Find the zipalign tool
+        ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -r | head -n 1)
+        
+        for apk in build/app/outputs/flutter-apk/*-release.apk; do
+          # Create a new filename for the aligned APK
+          aligned_apk="${apk%-release.apk}-aligned.apk"
+          
+          # Apply zipalign to each APK
+          "$ZIPALIGN" -v 4 "$apk" "$aligned_apk"
         done
 
     - name: Create release
