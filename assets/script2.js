@@ -136,47 +136,45 @@
                     }
 
                     console.log("Adding img ", img);
+                    console.log(`Image dimensions: ${img.width}x${img.height}`);
+                    console.log(`Natural dimensions: ${img.naturalWidth}x${img.naturalHeight}`);
+
                     let can = document.createElement('canvas');
                     let con = can.getContext("2d");
-                    can.width = img.width;
-                    can.height = img.height;
-                    con.drawImage(img, 0, 0);
+                    can.width = img.naturalWidth;
+                    can.height = img.naturalHeight;
+                    con.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
+
+                    console.log(`Canvas dimensions: ${can.width}x${can.height}`);
 
                     let imgData = can.toDataURL("image/jpeg", 1.0);
+
                     let pdfPageWidth = pdf.internal.pageSize.getWidth();
                     let pdfPageHeight = pdf.internal.pageSize.getHeight();
-                    let imgWidth = img.width;
-                    let imgHeight = img.height;
+                    console.log(`PDF page dimensions: ${pdfPageWidth}x${pdfPageHeight}`);
 
-                    // Calculate aspect ratio
-                    let aspectRatio = imgWidth / imgHeight;
-                    let newWidth, newHeight;
+                    let imgWidth = img.naturalWidth;
+                    let imgHeight = img.naturalHeight;
 
-                    // Adjust dimensions to fit within the page, maintaining the aspect ratio
-                    if (imgWidth > pdfPageWidth || imgHeight > pdfPageHeight) {
-                        if (aspectRatio > 1) { // Image is wider than it is tall
-                            newWidth = pdfPageWidth * 0.95; // Scale down a bit to fit within the margins
-                            newHeight = newWidth / aspectRatio;
-                        } else { // Image is taller than it is wide
-                            newHeight = pdfPageHeight * 0.95; // Scale down a bit to fit within the margins
-                            newWidth = newHeight * aspectRatio;
-                        }
-                    } else {
-                        newWidth = imgWidth;
-                        newHeight = imgHeight;
-                    }
+                    let scale = Math.min(pdfPageWidth / imgWidth, pdfPageHeight / imgHeight);
+                    let newWidth = imgWidth * scale;
+                    let newHeight = imgHeight * scale;
+
+                    console.log(`Scale factor: ${scale}`);
+                    console.log(`New image dimensions in PDF: ${newWidth}x${newHeight}`);
 
                     let xOffset = (pdfPageWidth - newWidth) / 2;
                     let yOffset = (pdfPageHeight - newHeight) / 2;
 
-                    // Only add a new page if it's not the first image
-                    if (imageCounter > 0) {
+                    console.log(`Image position in PDF: x=${xOffset}, y=${yOffset}`);
+
+                    if (imageCounter > 0){
                         pdf.addPage();
                     }
 
                     pdf.addImage(imgData, 'JPEG', xOffset, yOffset, newWidth, newHeight);
-                    imageCounter++;
 
+                    imageCounter++;
                     button.innerHTML = policy.createHTML(`Generating - ${imageCounter} / ${totalImages}`);
 
                     if (imageCounter % 5 === 0) {
@@ -206,6 +204,7 @@
                 console.log(`Scrolled to position: ${scrollToLocation}`);
 
                 await sleep(500);
+
                 let lastImage = document.querySelector('img:last-child');
                 lastImage.click();
 
