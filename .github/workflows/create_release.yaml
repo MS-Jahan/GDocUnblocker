@@ -78,16 +78,16 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
     - name: Upload APKs
-      id: upload_apks
       run: |
         for apk in build/app/outputs/flutter-apk/*-aligned.apk; do
           echo "Uploading $apk"
           curl -X POST \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Content-Type: application/zip" \
-            --data-binary @"$apk" \
-            "${{ steps.create_release.outputs.upload_url }}?name=$(basename $apk)"
-        done  
+            -H "Content-Type: multipart/form-data" \
+            -F "file=@$apk" \
+            "https://uploads.github.com/repos/MS-Jahan/GDocUnblocker/releases/${{ steps.create_release.outputs.release_id }}/assets?name=$(basename $apk)"
+        done
+
 
     # - name: Upload APKs
     #   uses: actions/upload-release-asset@v1
