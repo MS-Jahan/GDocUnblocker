@@ -12,6 +12,7 @@ import 'package:path_provider/path_provider.dart';
 import 'download_state.dart'; // Import the state model
 import 'locator.dart';
 import 'package:open_file/open_file.dart';
+import 'update_notifier.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,8 +20,8 @@ void main() async {
 
   setupLocator(); // Initialize the service locator
 
-  var server = await io.serve(_handlePostRequest, '0.0.0.0', 8080);
-  print('Server running on localhost:${server.port}');
+  // var server = await io.serve(_handlePostRequest, '127.0.0.1', 8080);
+  // print('Server running on localhost:${server.port}');
 
   runApp(
     ChangeNotifierProvider.value(
@@ -133,12 +134,32 @@ class WebViewHomePage extends StatefulWidget {
 class _WebViewHomePageState extends State<WebViewHomePage> {
   final _urlController = TextEditingController();
   String _selectedOption = '1'; // Default to "Faster (Recommended)"
+  late HttpServer _server; // Reference to the server
 
   @override
   void initState() {
     super.initState();
     _requestPermissions();
+    _startServer();
     checkServer();
+    _checkForUpdates();
+  }
+
+  @override
+  void dispose() {
+    // Close the server when the widget is disposed
+    _server.close();
+    print('Server stopped');
+    super.dispose();
+  }
+
+  Future<void> _startServer() async {
+    _server = await io.serve(_handlePostRequest, '127.0.0.1', 8080);
+    print('Server running on localhost:${_server.port}');
+  }
+
+  void _checkForUpdates() {
+    UpdateNotifier(context).checkForUpdate();
   }
 
   Future<void> _requestPermissions() async {
