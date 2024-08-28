@@ -9,7 +9,9 @@ class WebViewPage extends StatefulWidget {
   final String url;
   final String selectedScript;
 
-  WebViewPage({this.url = 'https://www.example.com', required this.selectedScript}); // Update constructor
+  WebViewPage(
+      {this.url = 'https://www.example.com',
+      required this.selectedScript}); // Update constructor
 
   @override
   _WebViewPageState createState() => _WebViewPageState();
@@ -39,9 +41,10 @@ class _WebViewPageState extends State<WebViewPage> {
 
   Future<void> _loadLocalJs() async {
     String scriptFile = widget.selectedScript == '1'
-        ? 'assets/script1.js'
+        ? 'assets/script1-optimized.js'
         : 'assets/script2.js';
-    String jsContent = await DefaultAssetBundle.of(context).loadString(scriptFile);
+    String jsContent =
+        await DefaultAssetBundle.of(context).loadString(scriptFile);
     _controller.runJavascript(jsContent);
   }
 }

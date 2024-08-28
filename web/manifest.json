@@ -1,11 +1,11 @@
 {
-    "name": "myapp",
-    "short_name": "myapp",
+    "name": "GDocUnblocker",
+    "short_name": "GDU",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#hexcode",
+    "theme_color": "#hexcode",
+    "description": "Download restricted PDFs/Docs from Google Drive!",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

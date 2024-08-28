@@ -106,14 +106,13 @@
             return;
         }
 
-        const scrollDistance = Math.round(scrollElement.clientHeight*2);
+        const scrollDistance = Math.round(scrollElement.clientHeight * 2);
 
         while (imageCounter < totalImages) {
             let elements = document.getElementsByTagName("img");
             let currentImageCount = elements.length;
 
-            console.log("currentImageCount, totalImages, previousImageCount", currentImageCount, totalImages, previousImageCount)
-            // print number of images in the pdf
+            console.log("currentImageCount, totalImages, previousImageCount", currentImageCount, totalImages, previousImageCount);
             console.log(`Number of images in the pdf: ${pdf.internal.getNumberOfPages()}`);
 
             if (currentImageCount > previousImageCount) {
@@ -121,23 +120,19 @@
                 for (let i = previousImageCount; i < currentImageCount; i++) {
                     let img = elements[i];
 
-                    // Scroll to the image before processing
-                    img.scrollIntoView(
-                        {
-                            behavior: "smooth",
-                            block: "center",
-                            inline: "center"
-                        }
-                    );
+                    img.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                        inline: "center"
+                    });
                     await sleep(1200);
 
-                    // Print the image src before checking validity
                     let imgSrc = await waitForImageSrc(img);
                     console.log("Image src:", imgSrc);
 
                     if (!/^blob:/.test(imgSrc)) {
                         console.log("Invalid src, skipping");
-                        continue; // Skip this image and move to the next
+                        continue;
                     }
 
                     console.log("Adding img ", img);
@@ -148,36 +143,61 @@
                     con.drawImage(img, 0, 0);
 
                     let imgData = can.toDataURL("image/jpeg", 1.0);
-                    pdf.addImage(imgData, 'JPEG', 0, 0);
-                    pdf.addPage();
+                    let pdfPageWidth = pdf.internal.pageSize.getWidth();
+                    let pdfPageHeight = pdf.internal.pageSize.getHeight();
+                    let imgWidth = img.width;
+                    let imgHeight = img.height;
 
+                    // Calculate aspect ratio
+                    let aspectRatio = imgWidth / imgHeight;
+                    let newWidth, newHeight;
+
+                    // Adjust dimensions to fit within the page, maintaining the aspect ratio
+                    if (imgWidth > pdfPageWidth || imgHeight > pdfPageHeight) {
+                        if (aspectRatio > 1) { // Image is wider than it is tall
+                            newWidth = pdfPageWidth * 0.95; // Scale down a bit to fit within the margins
+                            newHeight = newWidth / aspectRatio;
+                        } else { // Image is taller than it is wide
+                            newHeight = pdfPageHeight * 0.95; // Scale down a bit to fit within the margins
+                            newWidth = newHeight * aspectRatio;
+                        }
+                    } else {
+                        newWidth = imgWidth;
+                        newHeight = imgHeight;
+                    }
+
+                    let xOffset = (pdfPageWidth - newWidth) / 2;
+                    let yOffset = (pdfPageHeight - newHeight) / 2;
+
+                    // Only add a new page if it's not the first image
+                    if (imageCounter > 0) {
+                        pdf.addPage();
+                    }
+
+                    pdf.addImage(imgData, 'JPEG', xOffset, yOffset, newWidth, newHeight);
                     imageCounter++;
-                    button.innerHTML = policy.createHTML(`Generating - ${imageCounter} / ${totalImages}`); // Update button text with progress
+
+                    button.innerHTML = policy.createHTML(`Generating - ${imageCounter} / ${totalImages}`);
 
                     if (imageCounter % 5 === 0) {
-                        await sleep(500); // Sleep for 0.5 seconds after every 5 images
+                        await sleep(500);
                     }
 
                     if (imageCounter >= totalImages) {
                         console.log("Reached the total number of images, finishing PDF");
-                        return; // Exit the function once all images are processed
+                        return;
                     }
                 }
                 previousImageCount = currentImageCount;
-
-                // Update last image position
                 lastImagePosition = getLastImagePosition();
             } else {
                 console.log("No more new images found, scrolling down");
 
-                // Scroll the element to load more images
                 let scrollToLocation = scrollElement.scrollTop + scrollDistance;
                 if (scrollToLocation >= scrollElement.scrollHeight) {
                     scrollToLocation = scrollElement.scrollHeight - scrollElement.clientHeight;
                 }
 
-                // scrollElement.scrollTo(0, scrollToLocation);
-                // scroll smoothly
                 scrollElement.scrollTo({
                     top: scrollToLocation,
                     behavior: 'smooth'
@@ -185,20 +205,17 @@
 
                 console.log(`Scrolled to position: ${scrollToLocation}`);
 
-                await sleep(500); // Small delay to load new images
-
-                // click on the last image to load more images
+                await sleep(500);
                 let lastImage = document.querySelector('img:last-child');
                 lastImage.click();
 
-                // Check if we've reached the end of the document
                 if ((scrollElement.scrollTop + scrollElement.clientHeight) >= scrollElement.scrollHeight) {
                     console.log("Reached the end of the document, but haven't found all images.");
-                    // You might want to add additional logic here, such as retrying or breaking the loop
                 }
             }
         }
     }
+    
     // Function to generate PDF
     async function generatePDF() {
         let jspdf = document.createElement("script");

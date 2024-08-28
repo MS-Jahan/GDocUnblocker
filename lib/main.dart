@@ -177,7 +177,13 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('GDocUnblocker'),
+            title: Row(
+              children: [
+                Icon(Icons.lock_open_rounded), // Add an icon here
+                SizedBox(width: 8),
+                Text('GDocUnblocker'),
+              ],
+            ),
           ),
           drawer: Drawer(
             child: ListView(
@@ -187,16 +193,25 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                   decoration: BoxDecoration(
                     color: Colors.blue,
                   ),
-                  child: Text('Menu',
-                      style: TextStyle(color: Colors.white, fontSize: 24)),
+                  child: Row(
+                    children: [
+                      Icon(Icons.menu,
+                          color: Colors.white, size: 24), // Add an icon here
+                      SizedBox(width: 8),
+                      Text('Menu',
+                          style: TextStyle(color: Colors.white, fontSize: 24)),
+                    ],
+                  ),
                 ),
                 ListTile(
+                  leading: Icon(Icons.home), // Add an icon here
                   title: Text('Home'),
                   onTap: () {
                     Navigator.pop(context);
                   },
                 ),
                 ListTile(
+                  leading: Icon(Icons.download), // Add an icon here
                   title: Text('Downloads'),
                   onTap: () {
                     Navigator.pop(context);
@@ -221,7 +236,7 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                     labelText: 'Enter a Google Drive PDF preview URL',
                   ),
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 40),
                 Text(
                   "Select unblock method:",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -251,18 +266,22 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                         });
                       },
                     ),
-                    Text('Slower, if 1st one fails'),
+                    Text('Slower, Low Res, Use only if 1st one fails'),
                   ],
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 30),
                 ElevatedButton(
                   onPressed: () {
                     String url = _urlController.text;
+                    // check if the string ends with ?hl=en
                     if (url.isNotEmpty) {
+                      if (!url.endsWith('?hl=en')) {
+                        url += '?hl=en';
+                      }
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => WebViewPage(
+                          builder: (contexts) => WebViewPage(
                             url: url,
                             selectedScript:
                                 _selectedOption, // Pass the selected option
@@ -297,7 +316,13 @@ class DownloadsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Downloads'),
+        title: Row(
+          children: [
+            Icon(Icons.download), // Add an icon here
+            SizedBox(width: 8),
+            Text('Downloads'),
+          ],
+        ),
       ),
       body: FutureBuilder<List<FileSystemEntity>>(
         future: _listFilesInDirectory(),
@@ -325,6 +350,7 @@ class DownloadsPage extends StatelessWidget {
                 } else {
                   final file = files[index - 1];
                   return ListTile(
+                    leading: Icon(Icons.file_present), // Add an icon here
                     title: Text(file.path.split('/').last),
                     trailing: IconButton(
                       icon: Icon(Icons.open_in_new),
@@ -342,3 +368,61 @@ class DownloadsPage extends StatelessWidget {
     );
   }
 }
+
+// class DownloadsPage extends StatelessWidget {
+//   const DownloadsPage({super.key});
+
+//   Future<List<FileSystemEntity>> _listFilesInDirectory() async {
+//     final directory = await getDownloadsDirectory();
+//     return directory!.listSync();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Downloads'),
+//       ),
+//       body: FutureBuilder<List<FileSystemEntity>>(
+//         future: _listFilesInDirectory(),
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return Center(child: CircularProgressIndicator());
+//           } else if (snapshot.hasError) {
+//             return Center(child: Text('Error loading files'));
+//           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+//             return Center(child: Text('No files found'));
+//           } else {
+//             final files = snapshot.data!;
+//             return ListView.builder(
+//               itemCount: files.length + 1,
+//               itemBuilder: (context, index) {
+//                 if (index == 0) {
+//                   return Padding(
+//                     padding: const EdgeInsets.all(8.0),
+//                     child: Text(
+//                       'Download folder: ${files.first.parent.path}',
+//                       style:
+//                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+//                     ),
+//                   );
+//                 } else {
+//                   final file = files[index - 1];
+//                   return ListTile(
+//                     title: Text(file.path.split('/').last),
+//                     trailing: IconButton(
+//                       icon: Icon(Icons.open_in_new),
+//                       onPressed: () {
+//                         OpenFile.open(file.path);
+//                       },
+//                     ),
+//                   );
+//                 }
+//               },
+//             );
+//           }
+//         },
+//       ),
+//     );
+//   }
+// }

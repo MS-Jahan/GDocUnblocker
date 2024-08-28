@@ -95,7 +95,7 @@ try {
 
         // Function to generate the image URL for each page
         function generateImageURL(imageString, pageNumber) {
-            return `https://drive.google.com/viewer2/prod-03/img?ck=drive&ds=${imageString}&authuser=0&page=${pageNumber}&skiphighlight=true&w=800&webp=true`;
+            return `https://drive.google.com/viewer2/prod-03/img?ck=drive&ds=${imageString}&authuser=0&page=${pageNumber}&skiphighlight=true&w=1600&webp=true`;
         }
 
         // Function to generate PDF
@@ -128,27 +128,59 @@ try {
                 button.innerHTML = policy.createHTML(`Generating - 0 / ${totalImages}`); // Initial status message
 
                 for (let i = 1; i <= totalImages; i++) {
-                    const imageURL = generateImageURL(imageString, i-1);
+                    const imageURL = generateImageURL(imageString, i - 1);
                     try {
                         const response = await fetch(imageURL);
                         if (response.ok && response.headers.get("content-type").startsWith("image/")) {
                             const blob = await response.blob();
                             const img = document.createElement('img');
                             img.src = URL.createObjectURL(blob);
-
+                
                             // Ensure the image is fully loaded before drawing it to the canvas
                             await img.decode();
-
+                
                             const can = document.createElement('canvas');
                             const con = can.getContext("2d");
                             can.width = img.width;
                             can.height = img.height;
                             con.drawImage(img, 0, 0);
-
+                
                             const imgData = can.toDataURL("image/jpeg", 1.0);
+                
                             if (imgData.startsWith("data:image/jpeg")) {
-                                pdf.addImage(imgData, 'JPEG', 0, 0);
-                                pdf.addPage();
+                                const pdfPageWidth = pdf.internal.pageSize.getWidth();
+                                const pdfPageHeight = pdf.internal.pageSize.getHeight();
+                                const imgWidth = img.width;
+                                const imgHeight = img.height;
+                
+                                // Calculate aspect ratio
+                                const aspectRatio = imgWidth / imgHeight;
+                
+                                let newWidth, newHeight;
+                
+                                // Determine new dimensions based on page size and aspect ratio
+                                if (imgWidth > pdfPageWidth || imgHeight > pdfPageHeight) {
+                                    if (aspectRatio > 1) { // Image is wider than it is tall
+                                        newWidth = pdfPageWidth;
+                                        newHeight = pdfPageWidth / aspectRatio;
+                                    } else { // Image is taller than it is wide
+                                        newHeight = pdfPageHeight;
+                                        newWidth = pdfPageHeight * aspectRatio;
+                                    }
+                                } else {
+                                    newWidth = imgWidth;
+                                    newHeight = imgHeight;
+                                }
+                
+                                const xOffset = (pdfPageWidth - newWidth) / 2;
+                                const yOffset = (pdfPageHeight - newHeight) / 2;
+
+                                if(i > 1) {
+                                    pdf.addPage();
+                                }
+                
+                                pdf.addImage(imgData, 'JPEG', xOffset, yOffset, newWidth, newHeight);
+                                // pdf.addPage(); // Add a new page for the next image
                             } else {
                                 console.log(`Skipping image on page ${i} due to invalid base64 string.`);
                             }
@@ -158,9 +190,9 @@ try {
                     } catch (error) {
                         console.log(`Error fetching image for page ${i}:`, error);
                     }
-
+                
                     button.innerHTML = policy.createHTML(`Generating - ${i} / ${totalImages}`); // Update progress
-
+                
                     if (i % 6 === 0) {
                         await sleep(1000); // Pause for 2 seconds after every 6 requests
                     } else {
