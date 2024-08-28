@@ -357,6 +357,9 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                     String url = _urlController.text;
                     // check if the string ends with ?hl=en
                     if (url.isNotEmpty) {
+                      // if the URL has ?usp=sharing, remove it
+                      url = url.replaceAll(RegExp(r'\?usp=sharing'), '');
+
                       if (!url.endsWith('?hl=en')) {
                         url += '?hl=en';
                       }
