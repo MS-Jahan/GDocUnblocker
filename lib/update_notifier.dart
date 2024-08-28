@@ -11,8 +11,8 @@ class UpdateNotifier {
 
   Future<void> checkForUpdate() async {
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    final String currentVersion = packageInfo.version;
-
+    final String currentVersion =
+        "${packageInfo.version}+${packageInfo.buildNumber}";
     print("Current version: ${currentVersion}");
 
     // GitHub API URL to get the latest release
@@ -26,9 +26,6 @@ class UpdateNotifier {
         final jsonResponse = json.decode(response.body);
         String latestVersion = jsonResponse['tag_name'];
         print("Latest version: ${latestVersion}");
-        // split the latestversion by `+`
-        latestVersion = latestVersion.split('+')[0];
-        print("Latest version number: ${latestVersion}");
 
         if (latestVersion != currentVersion) {
           _showUpdateDialog(latestVersion);
@@ -63,7 +60,12 @@ class UpdateNotifier {
                 if (await canLaunch(url)) {
                   await launch(url);
                 } else {
-                  throw 'Could not launch $url';
+                  // show a snackbar or handle the error
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Could not launch $url'),
+                    ),
+                  );
                 }
               },
               child: Text('Update'),

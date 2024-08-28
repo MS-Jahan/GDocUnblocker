@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'webview_page.dart'; // Import the new WebView page file
 import 'dart:async';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -278,6 +279,23 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                     );
                   },
                 ),
+                ListTile(
+                  leading: Icon(Icons.info),
+                  title: Text('About'),
+                  onTap: () async {
+                    const url = "https://github.com/MS-Jahan/GDocUnblocker";
+                    if (await canLaunch(url)) {
+                      await launch(url);
+                    } else {
+                      // show a snackbar or handle the error
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not launch $url'),
+                        ),
+                      );
+                    }
+                  },
+                ),
               ],
             ),
           ),
@@ -325,6 +343,15 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                   ],
                 ),
                 SizedBox(height: 30),
+                Text(
+                  "Instructions:",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  "Press 'Go' now and press 'Generate PDF' on the next page.",
+                  style: TextStyle(fontStyle: FontStyle.italic),
+                ),
+                SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     String url = _urlController.text;
