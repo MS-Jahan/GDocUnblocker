@@ -76,27 +76,39 @@ jobs:
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+    
     - name: Upload APKs
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/app/outputs/flutter-apk/app-arm-release-aligned.apk
-        asset_name: app-arm-release-aligned-${{ env.VERSION }}.apk
-        asset_content_type: application/vnd.android.package-archive
+      id: upload_apks
+      run: |
+        for apk in build/app/outputs/flutter-apk/*-aligned.apk; do
+          echo "Uploading $apk"
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/zip" \
+            --data-binary @"$apk" \
+            "${{ steps.create_release.outputs.upload_url }}?name=$(basename $apk)"
+        done  
 
-    - name: Upload APKs (arm64)
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/app/outputs/flutter-apk/app-arm64-release-aligned.apk
-        asset_name: app-arm64-release-aligned-${{ env.VERSION }}.apk
-        asset_content_type: application/vnd.android.package-archive
+    # - name: Upload APKs
+    #   uses: actions/upload-release-asset@v1
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #     asset_path: build/app/outputs/flutter-apk/app-arm-release-aligned.apk
+    #     asset_name: app-arm-release-aligned-${{ env.VERSION }}.apk
+    #     asset_content_type: application/vnd.android.package-archive
 
-    - name: Upload APKs (x64)
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: build/app/outputs/flutter-apk/app-x64-release-aligned.apk
-        asset_name: app-x64-release-aligned-${{ env.VERSION }}.apk
-        asset_content_type: application/vnd.android.package-archive
+    # - name: Upload APKs (arm64)
+    #   uses: actions/upload-release-asset@v1
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #     asset_path: build/app/outputs/flutter-apk/app-arm64-release-aligned.apk
+    #     asset_name: app-arm64-release-aligned-${{ env.VERSION }}.apk
+    #     asset_content_type: application/vnd.android.package-archive
+
+    # - name: Upload APKs (x64)
+    #   uses: actions/upload-release-asset@v1
+    #   with:
+    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+    #     asset_path: build/app/outputs/flutter-apk/app-x64-release-aligned.apk
+    #     asset_name: app-x64-release-aligned-${{ env.VERSION }}.apk
+    #     asset_content_type: application/vnd.android.package-archive
