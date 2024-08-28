@@ -42,28 +42,18 @@ jobs:
       run: |
         flutter build apk --release
 
-    - name: Sign APKs
-      run: |
-        for apk in build/app/outputs/flutter-apk/*.apk; do
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore my-release-key.jks \
-            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ secrets.KEY_PASSWORD }}" \
-            "$apk" \
-            "${{ secrets.KEY_ALIAS }}"
-        done
-
     - name: Zipalign APKs
       run: |
-        # Find the zipalign tool
         ZIPALIGN=$(find $ANDROID_HOME/build-tools -name zipalign | sort -r | head -n 1)
-        
         for apk in build/app/outputs/flutter-apk/*-release.apk; do
-          # Create a new filename for the aligned APK
           aligned_apk="${apk%-release.apk}-aligned.apk"
-          
-          # Apply zipalign to each APK
           "$ZIPALIGN" -v 4 "$apk" "$aligned_apk"
+        done
+
+    - name: Sign APKs
+      run: |
+        for apk in build/app/outputs/flutter-apk/*-aligned.apk; do
+          apksigner sign --ks my-release-key.jks --ks-key-alias "${{ secrets.KEY_ALIAS }}" --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" --key-pass pass:"${{ secrets.KEY_PASSWORD }}" "$apk"
         done
 
     - name: Create release
