@@ -188,7 +188,8 @@ try {
                             console.log(`Failed to load image for page ${i}`);
                         }
                     } catch (error) {
-                        console.log(`Error fetching image for page ${i}:`, error);
+                        alert(`Error fetching image for page ${i}:`, error);
+                        alert('Error stack:', error.stack);
                     }
                 
                     button.innerHTML = policy.createHTML(`Generating - ${i} / ${totalImages}`); // Update progress
