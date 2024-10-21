@@ -28,7 +28,7 @@ void main() async {
   runApp(
     ChangeNotifierProvider.value(
       value: locator<DownloadState>(),
-      child: GDocUnblocker(),
+      child: const GDocUnblocker(),
     ),
   );
 }
@@ -59,7 +59,7 @@ Future<Response> _handlePostRequest(Request request) async {
         var file = File(filePath);
 
         await file.writeAsBytes(pdfData);
-        print('File saved successfully to ${filePath}');
+        print('File saved successfully to $filePath');
 
         // Notify Flutter app via global state using get_it
         final downloadState = locator<DownloadState>();
@@ -177,7 +177,7 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('File downloaded successfully!'),
+                content: const Text('File downloaded successfully!'),
                 action: SnackBarAction(
                   label: 'View Downloads',
                   onPressed: () {
@@ -185,7 +185,7 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DownloadsPage(),
+                        builder: (context) => const DownloadsPage(),
                       ),
                     );
                   },
@@ -200,7 +200,7 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Row(
+            title: const Row(
               children: [
                 Icon(Icons.lock_open_rounded), // Add an icon here
                 SizedBox(width: 8),
@@ -213,13 +213,13 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
               padding: EdgeInsets.zero,
               children: [
                 DrawerHeader(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Colors.blue,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
                           Icon(Icons.lock_open, color: Colors.white, size: 24),
                           SizedBox(width: 8),
@@ -228,19 +228,19 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                                   TextStyle(color: Colors.white, fontSize: 24)),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       FutureBuilder<PackageInfo>(
                         future: PackageInfo.fromPlatform(),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return Text(
+                            return const Text(
                               'Loading version...',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 16),
                             );
                           } else if (snapshot.hasError) {
-                            return Text(
+                            return const Text(
                               'Error loading version',
                               style:
                                   TextStyle(color: Colors.white, fontSize: 16),
@@ -251,7 +251,7 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                             return Text(
                               'v$version+$buildNumber',
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
+                                  const TextStyle(color: Colors.white, fontSize: 16),
                             );
                           }
                         },
@@ -260,28 +260,28 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                   ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.home),
-                  title: Text('Home'),
+                  leading: const Icon(Icons.home),
+                  title: const Text('Home'),
                   onTap: () {
                     Navigator.pop(context);
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.download),
-                  title: Text('Downloads'),
+                  leading: const Icon(Icons.download),
+                  title: const Text('Downloads'),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DownloadsPage(),
+                        builder: (context) => const DownloadsPage(),
                       ),
                     );
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.info),
-                  title: Text('About'),
+                  leading: const Icon(Icons.info),
+                  title: const Text('About'),
                   onTap: () async {
                     const url = "https://github.com/MS-Jahan/GDocUnblocker";
                     if (await canLaunch(url)) {
@@ -309,8 +309,8 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                     labelText: 'Enter a Google Drive PDF preview URL',
                   ),
                 ),
-                SizedBox(height: 40),
-                Text(
+                const SizedBox(height: 40),
+                const Text(
                   "Select unblock method:",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
@@ -325,7 +325,7 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                         });
                       },
                     ),
-                    Text('Faster (Recommended)'),
+                    const Text('Faster (Recommended)'),
                   ],
                 ),
                 Row(
@@ -339,19 +339,19 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                         });
                       },
                     ),
-                    Text('Slower, Low Res, Use only if 1st one fails'),
+                    const Text('Slower, Low Res, Use only if 1st one fails'),
                   ],
                 ),
-                SizedBox(height: 30),
-                Text(
+                const SizedBox(height: 30),
+                const Text(
                   "Instructions:",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                Text(
+                const Text(
                   "Press 'Go' now and press 'Generate PDF' on the next page.",
                   style: TextStyle(fontStyle: FontStyle.italic),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
                     String url = _urlController.text;
@@ -381,7 +381,7 @@ class _WebViewHomePageState extends State<WebViewHomePage> {
                           const SnackBar(content: Text('Please enter a URL')));
                     }
                   },
-                  child: Text('Go'),
+                  child: const Text('Go'),
                 ),
               ],
             ),
@@ -404,7 +404,7 @@ class DownloadsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.download), // Add an icon here
             SizedBox(width: 8),
@@ -416,11 +416,11 @@ class DownloadsPage extends StatelessWidget {
         future: _listFilesInDirectory(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error loading files'));
+            return const Center(child: Text('Error loading files'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No files found'));
+            return const Center(child: Text('No files found'));
           } else {
             final files = snapshot.data!;
             return ListView.builder(
@@ -432,16 +432,16 @@ class DownloadsPage extends StatelessWidget {
                     child: Text(
                       'Download folder: ${files.first.parent.path}',
                       style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   );
                 } else {
                   final file = files[index - 1];
                   return ListTile(
-                    leading: Icon(Icons.file_present), // Add an icon here
+                    leading: const Icon(Icons.file_present), // Add an icon here
                     title: Text(file.path.split('/').last),
                     trailing: IconButton(
-                      icon: Icon(Icons.open_in_new),
+                      icon: const Icon(Icons.open_in_new),
                       onPressed: () {
                         OpenFile.open(file.path);
                       },

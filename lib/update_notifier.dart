@@ -13,10 +13,10 @@ class UpdateNotifier {
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final String currentVersion =
         "${packageInfo.version}+${packageInfo.buildNumber}";
-    print("Current version: ${currentVersion}");
+    print("Current version: $currentVersion");
 
     // GitHub API URL to get the latest release
-    final String url =
+    const String url =
         'https://api.github.com/repos/MS-Jahan/GDocUnblocker/releases/latest';
 
     try {
@@ -25,7 +25,7 @@ class UpdateNotifier {
       if (response.statusCode == 200) {
         final jsonResponse = json.decode(response.body);
         String latestVersion = jsonResponse['tag_name'];
-        print("Latest version: ${latestVersion}");
+        print("Latest version: $latestVersion");
 
         if (latestVersion != currentVersion) {
           _showUpdateDialog(latestVersion);
@@ -43,7 +43,7 @@ class UpdateNotifier {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Update Available'),
+          title: const Text('Update Available'),
           content: Text(
               'A new version ($latestVersion) is available. Would you like to update?'),
           actions: [
@@ -51,24 +51,24 @@ class UpdateNotifier {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('No'),
+              child: const Text('No'),
             ),
             TextButton(
               onPressed: () async {
-                final String url =
+                const String url =
                     'https://github.com/MS-Jahan/GDocUnblocker/releases';
                 if (await canLaunch(url)) {
                   await launch(url);
                 } else {
                   // show a snackbar or handle the error
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text('Could not launch $url'),
                     ),
                   );
                 }
               },
-              child: Text('Update'),
+              child: const Text('Update'),
             ),
           ],
         );

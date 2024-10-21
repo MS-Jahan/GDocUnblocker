@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter_downloader/flutter_downloader.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'dart:io';
 
 class WebViewPage extends StatefulWidget {
   final String url;
   final String selectedScript;
 
-  WebViewPage(
-      {this.url = 'https://www.example.com',
+  const WebViewPage(
+      {super.key, this.url = 'https://www.example.com',
       required this.selectedScript}); // Update constructor
 
   @override
@@ -24,7 +20,7 @@ class _WebViewPageState extends State<WebViewPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('GDocUnblocker WebView'),
+        title: const Text('GDocUnblocker WebView'),
       ),
       body: WebView(
         javascriptMode: JavascriptMode.unrestricted,
