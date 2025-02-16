@@ -1,5 +1,7 @@
 ![alt text](https://raw.githubusercontent.com/MS-Jahan/GDocUnblocker/main/assets/icons/app_icon.png "Title")
 
+## Due to a change in how Google fetches PDF pages, the app is currently non-functional. We cannot provide a further update date at this time.
+
 # GDocUnblocker
 [Video Promo](https://www.youtube.com/watch?v=lD80-iX3zTs)
 
