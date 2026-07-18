@@ -4,7 +4,7 @@
 
 Flutter app that attempted to save restricted Google Drive Doc/PDF previews by injecting scripts in a WebView and posting page images to a local `shelf` server on-device.
 
-<!-- screenshot: docs/screenshots/hero.png -->
+![Project overview](docs/screenshots/hero.png)
 
 ## Overview
 
