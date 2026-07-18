@@ -1,95 +1,68 @@
-![alt text](https://raw.githubusercontent.com/MS-Jahan/GDocUnblocker/main/assets/icons/app_icon.png "Title")
-
-## Due to a change in how Google fetches PDF pages, the app is currently non-functional. We cannot provide a further update date at this time.
-
 # GDocUnblocker
-[Video Promo](https://www.youtube.com/watch?v=lD80-iX3zTs)
 
-**GDocUnblocker** is a Flutter application designed to bypass download restrictions in Google Drive Doc/PDF previews. This app runs some Javascript code to capture the Doc/PDF pages as images and then converts them to PDF. As `webview_flutter` doesn't support downloads, the app achieves its goal by creating a local server on the device that handles POST requests from the WebView, allowing files to be saved directly to the device's storage.
+> ⚠️ **Status: currently non-functional.** Google changed how PDF pages are fetched in Drive previews; downloads no longer work. No ETA for a fix. Kept public as an educational Flutter / WebView case study.
 
-## Features
+Flutter app that attempted to save restricted Google Drive Doc/PDF previews by injecting scripts in a WebView and posting page images to a local `shelf` server on-device.
 
-- **WebView Integration**: Opens Google Drive PDF preview links in a WebView, offering different methods to unblock the download.
-- **Local Server**: Runs a local server on the device to intercept and handle file downloads.
-- **File Management**: Provides a file management system where users can view and open downloaded files.
-- **Permissions Handling**: Automatically requests the necessary permissions to manage and access storage.
+<!-- screenshot: docs/screenshots/hero.png -->
 
-## How It Works
+## Overview
 
-The core functionality of GDocUnblocker revolves around bypassing the typical download restrictions in WebView by setting up a local server on the Android device. When a file download is triggered within the WebView, instead of being blocked, the file is sent to the local server running on the device. Here's how it works step-by-step:
+`webview_flutter` cannot download Drive-restricted PDFs directly. This app opened the preview, captured pages as images via injected JavaScript, and POSTed them to `localhost:8080` so files could be written to device storage and opened from an in-app Downloads screen.
 
-1. **WebView Integration**:
-   - The app opens the Google Drive PDF preview in a WebView.
-   - Depending on the user's selection, different scripts are injected to the webview to handle the download.
+**Promo video (historical):** [YouTube](https://www.youtube.com/watch?v=lD80-iX3zTs)
 
-2. **Local Server**:
-   - The app runs a local server on `localhost:8080` using the `shelf` package.
-   - When a download is triggered, the WebView sends a POST request to this local server with the file data.
+## Links
 
-3. **File Handling**:
-   - The local server receives the file data and saves it directly to the device's download directory.
-   - The app updates its state to notify the user of a successful download.
+- **Repo:** https://github.com/MS-Jahan/GDocUnblocker
+- **Video:** https://www.youtube.com/watch?v=lD80-iX3zTs
+- **Live demo:** none — app does not work against current Google Drive PDF previews
 
-4. **Viewing Downloads**:
-   - The app includes a `Downloads` page where users can view and open all downloaded files.
+## Key Features (as designed)
 
-## Getting Started
+- WebView integration with multiple unblock/capture methods
+- On-device local server (`shelf`) to receive file POSTs
+- Downloads page to browse/open saved files
+- Storage permission handling (including manage-external-storage on Android)
 
-### Prerequisites
+## Tech Stack
 
-- **Flutter SDK**: Ensure that you have Flutter installed on your development machine. You can download it [here](https://flutter.dev/docs/get-started/install).
-- **Android SDK**: Ensure that you have the Android SDK installed for Android development.
+**Flutter / Dart** · `webview_flutter` · `shelf` · `permission_handler` · `path_provider` / `android_path_provider` · `flutter_downloader` · `device_info_plus`
 
-### Installation
+## Dependencies
 
-1. **Clone the Repository**:
- ```bash
-   git clone https://github.com/yourusername/GDocUnblocker.git
-   cd GDocUnblocker
- ```
+From `pubspec.yaml` (run `flutter pub get`):
 
-2. **Install Dependencies**:
- ```bash
-   flutter pub get
- ```
+- `webview_flutter`, `flutter_custom_tabs`
+- `shelf`, `permission_handler`
+- `flutter_downloader`, `path_provider`, `android_path_provider`
+- `device_info_plus`
 
-3. **Run the App**:
- ```bash
-   flutter run
- ```
+SDK constraint: Dart `>=3.4.3 <4.0.0`
 
-### Usage
+## How to Run Locally (for study / future fixes)
 
-1. **Enter a Google Drive PDF preview URL**:
-   - Copy any Google Drive PDF preview link and paste it into the input field.
-   
-2. **Select Unblock Method**:
-   - Choose between the "Faster (Recommended)" and "Slower, Low Res" methods based on your preference.
+Prerequisites: [Flutter SDK](https://flutter.dev/docs/get-started/install), Android SDK.
 
-3. **Download Files**:
-   - Click the "Go" button, and the app will open the link in a WebView.
-   - Click the "Generate PDF" button. After the PDF is generated, the app will handle the file download through the local server.
-   - After the download is complete, you can view the files in the "Downloads" section.
+```bash
+git clone https://github.com/MS-Jahan/GDocUnblocker.git
+cd GDocUnblocker
+flutter pub get
+flutter run
+```
 
-### Permissions
+### Historical usage (when it worked)
 
-The app requires the following permissions:
+1. Paste a Google Drive PDF preview URL.
+2. Choose “Faster (Recommended)” or “Slower, Low Res”.
+3. Open WebView → **Generate PDF** → file saved via local server → view under **Downloads**.
 
-- **Storage Access**: To download and manage files.
-- **Manage External Storage**: To handle files in broader storage directories.
+## How It Worked
 
-### Troubleshooting
-
-- **Server Not Working**: If the local server is not functioning, ensure that you have allowed the necessary storage permissions.
-- **Download Issues**: If the download fails, try using the "Slower, Low Res" method, which might work better in some cases.
-
-You may also see popups in the webview incase any error happens. Please create an issue if you encounter any.
-
-## Contributing
-
-We welcome contributions! Please fork this repository, create a feature branch, and submit a pull request.
+1. Open Drive preview in WebView; inject capture scripts.
+2. Local server on `localhost:8080` receives POSTed page/image data.
+3. Save into device download directory; refresh Downloads UI.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
+[MIT](LICENSE)
